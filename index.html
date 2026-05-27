@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>オフィシャルサイト</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Welcome to My Website</h1>
+    </header>
+
+    <main>
+        <section class="card">
+            <h2>📢 お知らせ</h2>
+            <div id="news-list">
+                <p>読み込み中...</p>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>🛍 グッズ販売</h2>
+            <div id="goods-list" class="grid">
+                <p>読み込み中...</p>
+            </div>
+        </section>
+
+        <section class="card login-section">
+            <h3>🔑 管理者ログイン</h3>
+            <input type="email" id="login-email" placeholder="メールアドレス">
+            <input type="password" id="login-password" placeholder="パスワード">
+            <button id="login-btn">ログインして管理画面へ</button>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // ⚠️ 後ほどFirebaseで取得する設定値をここに貼り付けます
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 1. データを読み込んで表示する機能
+        async function loadData() {
+            // お知らせ読み込み
+            const newsSnapshot = await getDocs(collection(db, "news"));
+            const newsList = document.getElementById("news-list");
+            newsList.innerHTML = "";
+            newsSnapshot.forEach(doc => {
+                const data = doc.data();
+                newsList.innerHTML += `<p><strong>${data.date || ''}</strong> : ${data.content}</p>`;
+            });
+
+            // グッズ読み込み
+            const goodsSnapshot = await getDocs(collection(db, "goods"));
+            const goodsList = document.getElementById("goods-list");
+            goodsList.innerHTML = "";
+            goodsSnapshot.forEach(doc => {
+                const data = doc.data();
+                goodsList.innerHTML += `
+                    <div class="goods-item">
+                        <h4>${data.name}</h4>
+                        <p>${data.price}円</p>
+                    </div>
+                `;
+            });
+        }
+        loadData();
+
+        // 2. ログイン処理
+        document.getElementById("login-btn").addEventListener("click", async () => {
+            const email = document.getElementById("login-email").value;
+            const password = document.getElementById("login-password").value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                alert("ログイン成功！管理画面へ移動します。");
+                window.location.href = "admin.html"; // 管理画面へ
+            } catch (error) {
+                alert("ログインに失敗しました: " + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
