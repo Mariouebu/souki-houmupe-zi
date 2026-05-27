@@ -1,1 +1,0 @@
-# souki-houmupe-zi
